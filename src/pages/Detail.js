@@ -1,40 +1,35 @@
 import React from 'react';
-import Chance from 'chance';
+import ajax from 'superagent';
 
 class Detail extends React.Component {
   constructor(props) {
       super(props);
-      const people = [];
-      for (let i = 0; i < 5; i++) {
-          people.push({
-              name: chance.first(),
-              country: chance.country({ full: true }),
-              country_code: chance.country()
-          });
-      }
-      this.state = { people };
-      this.state.single_name = chance.first()
+      this.state = { commits: [] };
   }
 
-    buttonClicked() {
-      const newState = {
-          single_name: chance.first(),
-      };
-      this.setState(newState);
-    }
+  componentWillMount() {
+    ajax.get('https://api.github.com/repos/yqian1991/myreact/commits')
+        .end((error, response) => {
+            if (!error && response) {
+              console.dir(response.body);
+              this.setState({ commits: response.body });
+            } else {
+              console.log('There was an error fetching from GitHub', error);
+            }
+        }
+    );
+}
 
-    shouldUpdateComponent() {
-      return false;
-    }
-
-    render() {
-        return (<div>
-        {this.state.people.map((person, index) => (
-            <p>Hello, {person.name} from {person.country}, {person.country_code}!</p>
-        ))}
-        <button onClick={this.buttonClicked.bind(this)}>Meet Someone New</button>
-        <p>Hello, changed to {this.state.single_name}.</p>
-        </div>);
-    }
+  render() {
+      return (<div>
+      {this.state.commits.map((commit, index) => {
+          const author = commit.author ? commit.author.login : 'Anonymous';
+          return (<p key={index}>
+              <strong>{author}</strong>:
+              <a href={commit.html_url}>{commit.commit.message}</a>.
+          </p>);
+      })}
+      </div>);
+  }
 }
 export default Detail;
