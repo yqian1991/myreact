@@ -4,47 +4,33 @@ import ajax from 'superagent';
 class Detail extends React.Component {
   constructor(props) {
       super(props);
+
       this.state = {
           mode: 'commits',
           commits: [],
-          issues: [],
-          pulls: []
+          forks: [],
+          pulls: [],
+          issues: []
       };
   }
 
+  fetchFeed(type) {
+      ajax.get(`https://api.github.com/repos/facebook/react/${type}`)
+          .end((error, response) => {
+              if (!error && response) {
+                  this.setState({ [type]: response.body });
+              } else {
+                  console.log(`Error fetching ${type}`, error);
+              }
+          }
+      );
+  }
+
   componentWillMount() {
-    ajax.get('https://api.github.com/repos/yqian1991/myreact/commits')
-        .end((error, response) => {
-            if (!error && response) {
-              console.dir(response.body);
-              this.setState({ commits: response.body });
-            } else {
-              console.log('There was an error fetching from GitHub', error);
-            }
-        }
-    );
-
-    ajax.get('https://api.github.com/repos/yqian1991/myreact/issues?state=closed')
-        .end((error, response) => {
-            if (!error && response) {
-              console.dir(response.body);
-              this.setState({ issues: response.body });
-            } else {
-              console.log('There was an error fetching from GitHub', error);
-            }
-        }
-    );
-
-    ajax.get('https://api.github.com/repos/yqian1991/myreact/pulls')
-        .end((error, response) => {
-            if (!error && response) {
-              console.dir(response.body);
-              this.setState({ pulls: response.body });
-            } else {
-              console.log('There was an error fetching from GitHub', error);
-            }
-        }
-    );
+    this.fetchFeed('commits');
+    this.fetchFeed('forks');
+    this.fetchFeed('pulls');
+    this.fetchFeed('issues');
   }
 
   renderCommits() {
@@ -58,13 +44,13 @@ class Detail extends React.Component {
       });
   }
 
-  renderIssues() {
-      return this.state.issues.map((issue, index) => {
-          const owner = issue.owner ? issue.owner.login : 'Anonymous';
+  renderForks() {
+      return this.state.forks.map((fork, index) => {
+          const owner = fork.owner ? fork.owner.login : 'Anonymous';
 
           return (<p key={index}>
-              <strong>{owner}</strong>: Issue at :
-              <a href={issue.html_url}>{issue.html_url}</a> at {issue.created_at}.
+              <strong>{owner}</strong>: forked to
+              <a href={fork.html_url}>{fork.html_url}</a> at {fork.created_at}.
           </p>);
       });
   }
@@ -80,35 +66,43 @@ class Detail extends React.Component {
       });
   }
 
-  showCommits() {
-      this.setState({ mode: 'commits' });
+  renderIssues() {
+      return this.state.issues.map((issue, index) => {
+          const user = issue.user ? issue.user.login : 'Anonymous';
+
+          return (<p key={index}>
+              <strong>{user}</strong>:
+              <a href={issue.html_url}>{issue.body}</a>.
+          </p>);
+      });
   }
 
-  showIssues() {
-      this.setState({ mode: 'issues' });
-  }
-
-  showPulls() {
-      this.setState({ mode: 'pulls' });
+  selectMode(mode) {
+    this.setState({ mode });
   }
 
   render() {
-      let content;
+    let content;
 
-      if (this.state.mode === 'commits') {
-          content = this.renderCommits();
-      } else if (this.state.mode === 'issues') {
-          content = this.renderIssues();
-      } else {
-          content = this.renderPulls();
-      }
+    if (this.state.mode === 'commits') {
+        content = this.renderCommits();
+    } else if (this.state.mode === 'forks') {
+        content = this.renderForks();
+    } else if (this.state.mode === 'pulls'){
+        content = this.renderPulls();
+    } else {
+        content = this.renderIssues();
+    }
 
-      return (<div>
-          <button onClick={this.showCommits.bind(this)}>Show Commits</button>
-          <button onClick={this.showIssues.bind(this)}>Show Issues</button>
-          <button onClick={this.showPulls.bind(this)}>Show Pulls</button>
-          {content}
-      </div>);
+    return (
+        <div>
+            <button onClick={this.selectMode.bind(this, "commits")}>Show Commits</button>
+            <button onClick={this.selectMode.bind(this, "forks")}>Show Forks</button>
+            <button onClick={this.selectMode.bind(this, "pulls")}>Show Pulls</button>
+            <button onClick={this.selectMode.bind(this, "issues")}>Show Issues</button>
+            {content}
+        </div>
+    )
   }
 }
 export default Detail;
