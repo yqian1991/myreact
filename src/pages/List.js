@@ -1,9 +1,13 @@
 import React from 'react';
-import { IndexLink } from 'react-router';
+import { Link } from 'react-router';
 
 class List extends React.Component {
+  shouldComponentMount() {
+    return false;
+  }
+
   render() {
-      return (
+    return (
           <div>
               <p>Please choose a repository from the list below.</p>
               <ul>
