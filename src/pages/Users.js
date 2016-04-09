@@ -1,6 +1,6 @@
 import React from 'react';
 import ajax from 'superagent';
-import { IndexLink, Link } from 'react-router';
+import { IndexLink } from 'react-router';
 
 class User extends React.Component {
     constructor(props) {

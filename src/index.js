@@ -5,7 +5,7 @@ import { createHashHistory } from 'history';
 
 import routes from './routes';
 
-const appHistory = useRouterHistory(createHashHistory)({ queryKey: false })
+const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
 
 ReactDOM.render(
     <Router history={appHistory} onUpdate={() => window.scrollTo(0, 0)}>
